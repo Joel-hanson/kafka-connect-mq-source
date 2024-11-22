@@ -654,4 +654,39 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         connectTask.commitRecord(kafkaMessage);
     }
+
+    @Test
+    public void testJmsWorkerWithCustomReciveForConsumerAndCustomReconnectValues() throws Exception {
+        connectTask = getSourceTaskWithEmptyKafkaOffset();
+
+        final Map<String, String> connectorConfigProps = createExactlyOnceConnectorProperties();
+        connectorConfigProps.put("mq.message.body.jms", "true");
+        connectorConfigProps.put("mq.record.builder",
+                "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
+        connectorConfigProps.put("mq.jms.receive.timeout", "5000");
+        connectorConfigProps.put("mq.jms.reconnect.delay.min.ms", "100");
+        connectorConfigProps.put("mq.jms.reconnect.delay.max.ms", "10000");
+
+        final JMSWorker shared = new JMSWorker();
+        shared.configure(getPropertiesConfig(connectorConfigProps));
+        final JMSWorker dedicated = new JMSWorker();
+        dedicated.configure(getPropertiesConfig(connectorConfigProps));
+        final SequenceStateClient sequenceStateClient = new SequenceStateClient(DEFAULT_STATE_QUEUE, shared, dedicated);
+
+        connectTask.start(connectorConfigProps, shared, dedicated, sequenceStateClient);
+
+        final List<Message> messages = createAListOfMessages(getJmsContext(), 2, "message ");
+        putAllMessagesToQueue(DEFAULT_SOURCE_QUEUE, messages);
+
+        connectTask.poll();
+
+        final List<Message> stateMsgs1 = browseAllMessagesFromQueue(DEFAULT_STATE_QUEUE);
+        assertThat(stateMsgs1.size()).isEqualTo(1);
+        shared.attemptRollback();
+        assertThat(stateMsgs1.size()).isEqualTo(1);
+
+        assertEquals(5000L, shared.getReceiveTimeout());
+        assertEquals(100L, shared.getReconnectDelayMillisMin());
+        assertEquals(10000L, shared.getReconnectDelayMillisMax());
+    }
 }

@@ -163,6 +163,21 @@ public class MQSourceConnector extends SourceConnector {
     public static final String CONFIG_VALUE_MQ_CLIENT_RECONNECT_OPTION_DISABLED = "DISABLED";
     public static final String CONFIG_VALUE_MQ_CLIENT_RECONNECT_OPTION_ASDEF = "ASDEF";
 
+    public static final String CONFIG_MAX_RECEIVE_TIMEOUT = "mq.jms.receive.timeout";
+    public static final String CONFIG_DOCUMENTATION_MAX_RECEIVE_TIMEOUT = "The timeout in milliseconds for receiving messages from JMS Consumer.";
+    public static final String CONFIG_DISPLAY_MAX_RECEIVE_TIMEOUT = "JMS receive timeout";
+    public static final long CONFIG_MAX_RECEIVE_TIMEOUT_DEFAULT = 2000L;
+
+    public static final String CONFIG_RECONNECT_DELAY_MIN = "mq.jms.reconnect.delay.min.ms";
+    public static final String CONFIG_DOCUMENTATION_RECONNECT_DELAY_MIN = "The minimum delay in milliseconds for reconnect attempts.";
+    public static final String CONFIG_DISPLAY_RECONNECT_DELAY_MIN = "JMS reconnect minimum delay";
+    public static final long CONFIG_RECONNECT_DELAY_MIN_DEFAULT = 64L;
+
+    public static final String CONFIG_RECONNECT_DELAY_MAX = "mq.jms.reconnect.delay.max.ms";
+    public static final String CONFIG_DOCUMENTATION_RECONNECT_DELAY_MAX = "The maximum delay in milliseconds for reconnect attempts.";
+    public static final String CONFIG_DISPLAY_RECONNECT_DELAY_MAX = "JMS reconnect maximum delay";
+    public static final long CONFIG_RECONNECT_DELAY_MAX_DEFAULT = 8192L;
+
     // Define valid reconnect options
     public static final String[] CONFIG_VALUE_MQ_VALID_RECONNECT_OPTIONS = {
         CONFIG_VALUE_MQ_CLIENT_RECONNECT_OPTION_ASDEF,
@@ -175,7 +190,7 @@ public class MQSourceConnector extends SourceConnector {
         CONFIG_VALUE_MQ_CLIENT_RECONNECT_OPTION_DISABLED.toLowerCase(Locale.ENGLISH)
     };
 
-    public static String version = "2.2.0";
+    public static String version = "2.2.1";
 
     private Map<String, String> configProps;
 
@@ -531,6 +546,30 @@ public class MQSourceConnector extends SourceConnector {
                 CONFIG_GROUP_MQ, 25,
                 Width.SHORT,
                 CONFIG_DISPLAY_MQ_CLIENT_RECONNECT_OPTIONS);
+        CONFIGDEF.define(CONFIG_MAX_RECEIVE_TIMEOUT,
+                Type.LONG,
+                CONFIG_MAX_RECEIVE_TIMEOUT_DEFAULT, ConfigDef.Range.atLeast(0),
+                Importance.MEDIUM,
+                CONFIG_DOCUMENTATION_MAX_RECEIVE_TIMEOUT,
+                CONFIG_GROUP_MQ, 26,
+                Width.MEDIUM,
+                CONFIG_DISPLAY_MAX_RECEIVE_TIMEOUT);
+        CONFIGDEF.define(CONFIG_RECONNECT_DELAY_MIN,
+                Type.LONG,
+                CONFIG_RECONNECT_DELAY_MIN_DEFAULT, ConfigDef.Range.atLeast(0),
+                Importance.MEDIUM,
+                CONFIG_DOCUMENTATION_RECONNECT_DELAY_MIN,
+                CONFIG_GROUP_MQ, 27,
+                Width.MEDIUM,
+                CONFIG_DISPLAY_RECONNECT_DELAY_MIN);
+        CONFIGDEF.define(CONFIG_RECONNECT_DELAY_MAX,
+                Type.LONG,
+                CONFIG_RECONNECT_DELAY_MAX_DEFAULT, ConfigDef.Range.atLeast(0),
+                Importance.MEDIUM,
+                CONFIG_DOCUMENTATION_RECONNECT_DELAY_MAX,
+                CONFIG_GROUP_MQ, 28,
+                Width.MEDIUM,
+                CONFIG_DISPLAY_RECONNECT_DELAY_MAX);
 
         CONFIGDEF.define(CONFIG_NAME_TOPIC,
                 Type.STRING,

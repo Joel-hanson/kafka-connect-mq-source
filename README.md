@@ -256,6 +256,10 @@ In MQ, the message ID and correlation ID are both 24-byte arrays. As strings, th
 
 If you write your own RecordBuilder, you can access the MQMD fields of the MQ messages as JMS message properties. By default, only a subset of the MQMD fields are available, but you can get access to all of them by setting the configuration `mq.message.mqmd.read`. For more information, see [JMS message object properties](https://www.ibm.com/support/knowledgecenter/SSFKSJ_9.1.0/com.ibm.mq.dev.doc/q032350_.htm) in the MQ documentation.
 
+### JMS message properties as Kafka headers
+
+When `mq.jms.properties.copy.to.kafka.headers` is set to `true`, JMS message properties are copied to Kafka headers while preserving their original data types. For example, the `JMS_IBM_MQMD_Priority` header with integer value `5` will be stored as the integer `5` in the Kafka header, not as the string `"5"`. This ensures compatibility with downstream consumers that expect typed values.
+
 ## Security
 
 The connector supports authentication with user name and password and also connections secured with TLS using a server-side certificate and mutual authentication with client-side certificates. You can also choose whether to use connection security parameters (MQCSP) depending on the security settings you're using in MQ.

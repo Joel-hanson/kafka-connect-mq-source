@@ -152,6 +152,54 @@ public class JmsToKafkaHeaderConverterTest {
     }
 
     @Test
+    public void convertNumericAndPrimitiveJmsPropertiesToKafkaHeaders() throws JMSException {
+        // Test that all numeric and primitive JMS types are preserved
+        final List<String> keys = Arrays.asList("longProp", "shortProp", "byteProp",
+                                                  "booleanProp", "floatProp", "doubleProp");
+        final Enumeration<String> keyEnumeration = Collections.enumeration(keys);
+
+        // Arrange
+        when(message.getPropertyNames()).thenReturn(keyEnumeration);
+        when(message.getObjectProperty("longProp")).thenReturn(123456789L);
+        when(message.getObjectProperty("shortProp")).thenReturn((short) 100);
+        when(message.getObjectProperty("byteProp")).thenReturn((byte) 42);
+        when(message.getObjectProperty("booleanProp")).thenReturn(true);
+        when(message.getObjectProperty("floatProp")).thenReturn(3.14f);
+        when(message.getObjectProperty("doubleProp")).thenReturn(2.718281828);
+
+        // Act
+        final ConnectHeaders actualConnectHeaders = jmsToKafkaHeaderConverter
+                .convertJmsPropertiesToKafkaHeaders(message);
+
+        // Verify
+        assertEquals(6, actualConnectHeaders.size());
+        
+        Header longHeader = actualConnectHeaders.lastWithName("longProp");
+        assertEquals(Schema.Type.INT64, longHeader.schema().type());
+        assertEquals(123456789L, longHeader.value());
+
+        Header shortHeader = actualConnectHeaders.lastWithName("shortProp");
+        assertEquals(Schema.Type.INT16, shortHeader.schema().type());
+        assertEquals((short) 100, shortHeader.value());
+
+        Header byteHeader = actualConnectHeaders.lastWithName("byteProp");
+        assertEquals(Schema.Type.INT8, byteHeader.schema().type());
+        assertEquals((byte) 42, byteHeader.value());
+
+        Header booleanHeader = actualConnectHeaders.lastWithName("booleanProp");
+        assertEquals(Schema.Type.BOOLEAN, booleanHeader.schema().type());
+        assertEquals(true, booleanHeader.value());
+
+        Header floatHeader = actualConnectHeaders.lastWithName("floatProp");
+        assertEquals(Schema.Type.FLOAT32, floatHeader.schema().type());
+        assertEquals(3.14f, floatHeader.value());
+
+        Header doubleHeader = actualConnectHeaders.lastWithName("doubleProp");
+        assertEquals(Schema.Type.FLOAT64, doubleHeader.schema().type());
+        assertEquals(2.718281828, doubleHeader.value());
+    }
+
+    @Test
     public void convertNullValuesInJmsPropertiesToKafkaHeaders() throws JMSException {
         final List<String> keys = Arrays.asList("nullProperty");
         final Enumeration<String> keyEnumeration = Collections.enumeration(keys);

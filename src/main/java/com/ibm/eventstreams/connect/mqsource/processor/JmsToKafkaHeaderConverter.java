@@ -96,6 +96,7 @@ public class JmsToKafkaHeaderConverter {
             headers.add(key, value, Schema.OPTIONAL_FLOAT64_SCHEMA);
         } else {
             // For String and any other types, convert to String
+            log.debug("Converting property '{}' of type '{}' to String", key, value.getClass().getName());
             final String headerValue = Objects.toString(value, null);
             headers.addString(key, headerValue);
         }

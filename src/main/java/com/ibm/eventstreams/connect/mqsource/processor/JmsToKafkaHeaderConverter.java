@@ -15,6 +15,7 @@
  */
 package com.ibm.eventstreams.connect.mqsource.processor;
 
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.header.ConnectHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +51,7 @@ public class JmsToKafkaHeaderConverter {
             jmsPropertyKeys.forEach(key -> {
                 try {
                     final Object prop = message.getObjectProperty(key.toString());
-                    // this will yield `null` if prop is null, otherwise its toString()
-                    final String headerValue = Objects.toString(prop, null);
-                    connectHeaders.addString(key.toString(), headerValue);
+                    addHeaderWithType(connectHeaders, key.toString(), prop);
                 } catch (final JMSException e) {
                     // Not failing the message processing if JMS properties cannot be read for some
                     // reason.
@@ -66,5 +65,39 @@ public class JmsToKafkaHeaderConverter {
         }
 
         return connectHeaders;
+    }
+
+    /**
+     * Adds a header to ConnectHeaders while preserving the original type.
+     * Handles JMS-supported property types and MQMD-specific types.
+     * 
+     * @param headers The ConnectHeaders to add to
+     * @param key The header key
+     * @param value The header value
+     */
+    private void addHeaderWithType(final ConnectHeaders headers, final String key, final Object value) {
+        if (value == null) {
+            headers.addString(key, null);
+        } else if (value instanceof byte[]) {
+            headers.add(key, (byte[]) value, Schema.OPTIONAL_BYTES_SCHEMA);
+        } else if (value instanceof Integer) {
+            headers.add(key, value, Schema.OPTIONAL_INT32_SCHEMA);
+        } else if (value instanceof Long) {
+            headers.add(key, value, Schema.OPTIONAL_INT64_SCHEMA);
+        } else if (value instanceof Short) {
+            headers.add(key, value, Schema.OPTIONAL_INT16_SCHEMA);
+        } else if (value instanceof Byte) {
+            headers.add(key, value, Schema.OPTIONAL_INT8_SCHEMA);
+        } else if (value instanceof Boolean) {
+            headers.add(key, value, Schema.OPTIONAL_BOOLEAN_SCHEMA);
+        } else if (value instanceof Float) {
+            headers.add(key, value, Schema.OPTIONAL_FLOAT32_SCHEMA);
+        } else if (value instanceof Double) {
+            headers.add(key, value, Schema.OPTIONAL_FLOAT64_SCHEMA);
+        } else {
+            // For String and any other types, convert to String
+            final String headerValue = Objects.toString(value, null);
+            headers.addString(key, headerValue);
+        }
     }
 }

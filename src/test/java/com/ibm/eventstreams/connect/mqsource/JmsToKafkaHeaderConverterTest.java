@@ -152,7 +152,7 @@ public class JmsToKafkaHeaderConverterTest {
     }
 
     @Test
-    public void NullValuesInJmsPropertiesToKafkaHeaders() throws JMSException {
+    public void convertNullValuesInJmsPropertiesToKafkaHeaders() throws JMSException {
         final List<String> keys = Arrays.asList("nullProperty");
         final Enumeration<String> keyEnumeration = Collections.enumeration(keys);
 

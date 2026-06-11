@@ -105,6 +105,10 @@ public class MQSourceConnector extends SourceConnector {
     public static final String CONFIG_DOCUMENTATION_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER = "Whether to copy JMS message properties to Kafka headers.";
     public static final String CONFIG_DISPLAY_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER = "Copy JMS message properties to Kafka headers";
 
+    public static final String CONFIG_NAME_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES = "mq.jms.properties.preserve.header.types";
+    public static final String CONFIG_DOCUMENTATION_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES = "Whether to preserve original data types when copying JMS message properties to Kafka headers. When false (default), all JMS properties are converted to strings for backward compatibility. When true, properties preserve their original types (Integer, Long, Short, Byte, Boolean, Float, Double, String). Note: MQMD byte array properties (MsgId, CorrelId, GroupId, AccountingToken) are always preserved as byte arrays regardless of this setting, as they cannot be meaningfully converted to strings. MQMD properties are only available when mq.message.mqmd.read is set to true.";
+    public static final String CONFIG_DISPLAY_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES = "Preserve JMS property types in headers";
+
     public static final String CONFIG_NAME_MQ_RECORD_BUILDER_KEY_HEADER = "mq.record.builder.key.header";
     public static final String CONFIG_DOCUMENTATION_MQ_RECORD_BUILDER_KEY_HEADER = "The JMS message header to use as the Kafka record key.";
     public static final String CONFIG_DISPLAY_MQ_RECORD_BUILDER_KEY_HEADER = "Record builder key header";
@@ -587,13 +591,22 @@ public class MQSourceConnector extends SourceConnector {
                 CONFIG_GROUP_MQ, 21, Width.MEDIUM,
                 CONFIG_DISPLAY_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER);
 
+        CONFIGDEF.define(CONFIG_NAME_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES,
+                Type.BOOLEAN,
+                // must be a non-null boolean - assume false if not provided (backward compatible)
+                Boolean.FALSE, new ConfigDef.NonNullValidator(),
+                Importance.LOW,
+                CONFIG_DOCUMENTATION_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES,
+                CONFIG_GROUP_MQ, 22, Width.LONG,
+                CONFIG_DISPLAY_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES);
+
         CONFIGDEF.define(CONFIG_NAME_MQ_SSL_USE_IBM_CIPHER_MAPPINGS,
                 Type.BOOLEAN,
                 // must be a non-null boolean - assume true if not provided
                 Boolean.TRUE, new ConfigDef.NonNullValidator(),
                 Importance.LOW,
                 CONFIG_DOCUMENTATION_MQ_SSL_USE_IBM_CIPHER_MAPPINGS,
-                CONFIG_GROUP_MQ, 22, Width.SHORT,
+                CONFIG_GROUP_MQ, 23, Width.SHORT,
                 CONFIG_DISPLAY_MQ_SSL_USE_IBM_CIPHER_MAPPINGS);
 
         CONFIGDEF.define(CONFIG_NAME_MQ_EXACTLY_ONCE_STATE_QUEUE,
@@ -601,7 +614,7 @@ public class MQSourceConnector extends SourceConnector {
                 null, ANY,
                 Importance.LOW,
                 CONFIG_DOCUMENTATION_MQ_EXACTLY_ONCE_STATE_QUEUE,
-                CONFIG_GROUP_MQ, 23, Width.LONG,
+                CONFIG_GROUP_MQ, 24, Width.LONG,
                 CONFIG_DISPLAY_MQ_EXACTLY_ONCE_STATE_QUEUE);
 
         // How long the SourceTask will wait for a previous batch of messages to
@@ -614,7 +627,7 @@ public class MQSourceConnector extends SourceConnector {
                 2000, ConfigDef.Range.atLeast(0),
                 Importance.MEDIUM,
                 CONFIG_DOCUMENTATION_MAX_POLL_BLOCKED_TIME_MS,
-                null, 24, Width.MEDIUM,
+                null, 25, Width.MEDIUM,
                 CONFIG_DISPLAY_MAX_POLL_BLOCKED_TIME_MS);
 
         CONFIGDEF.define(CONFIG_NAME_MQ_CLIENT_RECONNECT_OPTIONS,
@@ -623,7 +636,7 @@ public class MQSourceConnector extends SourceConnector {
                 ConfigDef.ValidString.in(CONFIG_VALUE_MQ_VALID_RECONNECT_OPTIONS),
                 Importance.MEDIUM,
                 CONFIG_DOCUMENTATION_MQ_CLIENT_RECONNECT_OPTIONS,
-                CONFIG_GROUP_MQ, 25,
+                CONFIG_GROUP_MQ, 26,
                 Width.SHORT,
                 CONFIG_DISPLAY_MQ_CLIENT_RECONNECT_OPTIONS);
         CONFIGDEF.define(CONFIG_MAX_RECEIVE_TIMEOUT,
@@ -633,7 +646,7 @@ public class MQSourceConnector extends SourceConnector {
                 ConfigDef.Importance.MEDIUM,
                 CONFIG_DOCUMENTATION_MAX_RECEIVE_TIMEOUT,
                 CONFIG_GROUP_MQ,
-                26,
+                27,
                 ConfigDef.Width.MEDIUM,
                 CONFIG_DISPLAY_MAX_RECEIVE_TIMEOUT);
         CONFIGDEF.define(CONFIG_SUBSEQUENT_RECEIVE_TIMEOUT,
@@ -642,7 +655,7 @@ public class MQSourceConnector extends SourceConnector {
                 ConfigDef.Importance.LOW,
                 CONFIG_DOCUMENTATION_SUBSEQUENT_RECEIVE_TIMEOUT,
                 CONFIG_GROUP_MQ,
-                27,
+                28,
                 ConfigDef.Width.MEDIUM,
                 CONFIG_DISPLAY_SUBSEQUENT_RECEIVE_TIMEOUT);
         CONFIGDEF.define(CONFIG_RECONNECT_DELAY_MIN,
@@ -650,7 +663,7 @@ public class MQSourceConnector extends SourceConnector {
                 CONFIG_RECONNECT_DELAY_MIN_DEFAULT, ConfigDef.Range.atLeast(CONFIG_RECONNECT_DELAY_MIN_MINIMUM),
                 Importance.MEDIUM,
                 CONFIG_DOCUMENTATION_RECONNECT_DELAY_MIN,
-                CONFIG_GROUP_MQ, 28,
+                CONFIG_GROUP_MQ, 29,
                 Width.MEDIUM,
                 CONFIG_DISPLAY_RECONNECT_DELAY_MIN);
         CONFIGDEF.define(CONFIG_RECONNECT_DELAY_MAX,
@@ -658,7 +671,7 @@ public class MQSourceConnector extends SourceConnector {
                 CONFIG_RECONNECT_DELAY_MAX_DEFAULT, ConfigDef.Range.atLeast(CONFIG_RECONNECT_DELAY_MAX_MINIMUM),
                 Importance.MEDIUM,
                 CONFIG_DOCUMENTATION_RECONNECT_DELAY_MAX,
-                CONFIG_GROUP_MQ, 29,
+                CONFIG_GROUP_MQ, 30,
                 Width.MEDIUM,
                 CONFIG_DISPLAY_RECONNECT_DELAY_MAX);
         CONFIGDEF.define(DLQ_TOPIC_NAME_CONFIG,
@@ -666,7 +679,7 @@ public class MQSourceConnector extends SourceConnector {
                 DLQ_TOPIC_DEFAULT,
                 Importance.MEDIUM,
                 DLQ_TOPIC_NAME_DOC,
-                CONFIG_GROUP_MQ, 30,
+                CONFIG_GROUP_MQ, 31,
                 Width.MEDIUM,
                 DLQ_TOPIC_DISPLAY);
         CONFIGDEF.define(DLQ_CONTEXT_HEADERS_ENABLE_CONFIG,
@@ -674,7 +687,7 @@ public class MQSourceConnector extends SourceConnector {
                 DLQ_CONTEXT_HEADERS_ENABLE_DEFAULT,
                 Importance.MEDIUM,
                 DLQ_CONTEXT_HEADERS_ENABLE_DOC,
-                CONFIG_GROUP_MQ, 31,
+                CONFIG_GROUP_MQ, 32,
                 Width.MEDIUM,
                 DLQ_CONTEXT_HEADERS_ENABLE_DISPLAY);
         CONFIGDEF.define(CONFIG_MAX_POLL_TIME,
@@ -683,7 +696,7 @@ public class MQSourceConnector extends SourceConnector {
                 ConfigDef.Importance.LOW,
                 CONFIG_DOCUMENTATION_MAX_POLL_TIME,
                 CONFIG_GROUP_MQ,
-                32,
+                33,
                 ConfigDef.Width.MEDIUM,
                 CONFIG_DISPLAY_MAX_POLL_TIME);
         CONFIGDEF.define(CONFIG_NAME_MQ_RECORD_BUILDER_JSON_SCHEMAS_ENABLE,
@@ -691,7 +704,7 @@ public class MQSourceConnector extends SourceConnector {
                 false, new ConfigDef.NonNullValidator(),
                 Importance.LOW,
                 CONFIG_DOCUMENTATION_MQ_RECORD_BUILDER_JSON_SCHEMAS_ENABLE,
-                CONFIG_GROUP_MQ, 33,
+                CONFIG_GROUP_MQ, 34,
                 Width.SHORT,
                 CONFIG_DISPLAY_MQ_RECORD_BUILDER_JSON_SCHEMAS_ENABLE);
         CONFIGDEF.define(CONFIG_NAME_MQ_RECORD_BUILDER_JSON_SCHEMA_CONTENT,
@@ -699,7 +712,7 @@ public class MQSourceConnector extends SourceConnector {
                 null, new SchemaValidator(),
                 Importance.LOW,
                 CONFIG_DOCUMENTATION_MQ_RECORD_BUILDER_JSON_SCHEMA_CONTENT,
-                CONFIG_GROUP_MQ, 34,
+                CONFIG_GROUP_MQ, 35,
                 Width.MEDIUM,
                 CONFIG_DISPLAY_MQ_RECORD_BUILDER_JSON_SCHEMA_CONTENT);
 

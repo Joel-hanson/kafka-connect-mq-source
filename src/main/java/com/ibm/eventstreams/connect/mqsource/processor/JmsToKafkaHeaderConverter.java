@@ -32,6 +32,18 @@ import java.util.Objects;
  */
 public class JmsToKafkaHeaderConverter {
     private static final Logger log = LoggerFactory.getLogger(JmsToKafkaHeaderConverter.class);
+    
+    /** Configuration flag to control type preservation for JMS properties */
+    private final boolean preserveHeaderTypes;
+
+    /**
+     * Constructor with configuration.
+     *
+     * @param preserveHeaderTypes Whether to preserve types for JMS properties.
+     */
+    public JmsToKafkaHeaderConverter(final boolean preserveHeaderTypes) {
+        this.preserveHeaderTypes = preserveHeaderTypes;
+    }
 
     /**
      * Copies the JMS properties to Kafka headers.
@@ -50,8 +62,8 @@ public class JmsToKafkaHeaderConverter {
 
             jmsPropertyKeys.forEach(key -> {
                 try {
-                    final Object prop = message.getObjectProperty(key.toString());
-                    addHeaderWithType(connectHeaders, key.toString(), prop);
+                    final Object prop = message.getObjectProperty(key);
+                    addHeaderWithType(connectHeaders, key, prop);
                 } catch (final JMSException e) {
                     // Not failing the message processing if JMS properties cannot be read for some
                     // reason.
@@ -68,9 +80,14 @@ public class JmsToKafkaHeaderConverter {
     }
 
     /**
-     * Adds a header to ConnectHeaders while preserving the original type.
-     * Handles JMS-supported property types and MQMD-specific types.
-     * 
+     * Adds a header to ConnectHeaders with type preservation based on configuration.
+     *
+     * Type preservation rules:
+     * - byte[] is ALWAYS preserved as BYTES (only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[]
+     *   when mq.message.mqmd.read=true)
+     * - Other types (Integer, Long, Short, Byte, Boolean, Float, Double, String) are preserved only if preserveHeaderTypes=true
+     * - When preserveHeaderTypes=false (default), all non-byte[] types are converted to String for backward compatibility
+     *
      * @param headers The ConnectHeaders to add to
      * @param key The header key
      * @param value The header value
@@ -78,9 +95,27 @@ public class JmsToKafkaHeaderConverter {
     private void addHeaderWithType(final ConnectHeaders headers, final String key, final Object value) {
         if (value == null) {
             headers.addString(key, null);
-        } else if (value instanceof byte[]) {
+            return;
+        }
+        
+        // byte[] must always be preserved (only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[])
+        // JMS spec does not allow custom properties to be byte[] - only MQMD properties (when mq.message.mqmd.read=true)
+        // Cannot be converted to String meaningfully
+        if (value instanceof byte[]) {
             headers.add(key, (byte[]) value, Schema.OPTIONAL_BYTES_SCHEMA);
-        } else if (value instanceof Integer) {
+            return;
+        }
+        
+        // If type preservation is disabled, convert everything else to String (backward compatible)
+        if (!preserveHeaderTypes) {
+            log.debug("Converting property '{}' of type '{}' to String ",
+                     key, value.getClass().getName());
+            headers.addString(key, value.toString());
+            return;
+        }
+        
+        // Type preservation is enabled - preserve original types
+        if (value instanceof Integer) {
             headers.add(key, value, Schema.OPTIONAL_INT32_SCHEMA);
         } else if (value instanceof Long) {
             headers.add(key, value, Schema.OPTIONAL_INT64_SCHEMA);
@@ -97,8 +132,7 @@ public class JmsToKafkaHeaderConverter {
         } else {
             // For String and any other types, convert to String
             log.debug("Converting property '{}' of type '{}' to String", key, value.getClass().getName());
-            final String headerValue = Objects.toString(value, null);
-            headers.addString(key, headerValue);
+            headers.addString(key, value.toString());
         }
     }
 }

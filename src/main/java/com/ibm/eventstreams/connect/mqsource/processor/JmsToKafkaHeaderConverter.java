@@ -25,7 +25,6 @@ import javax.jms.Message;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Single responsibility class to copy JMS properties to Kafka headers.

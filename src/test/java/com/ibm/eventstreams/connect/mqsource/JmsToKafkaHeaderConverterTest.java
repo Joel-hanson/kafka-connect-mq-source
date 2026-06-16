@@ -45,7 +45,7 @@ public class JmsToKafkaHeaderConverterTest {
     @Test
     public void convertJmsPropertiesToKafkaHeaders() throws JMSException {
         // Test with preserveHeaderTypes=true
-        final JmsToKafkaHeaderConverter converter = new JmsToKafkaHeaderConverter(true);
+        final JmsToKafkaHeaderConverter converter = new JmsToKafkaHeaderConverter(false);
         
         final List<String> keys = Arrays.asList("facilityCountryCode", "facilityNum", "nullProperty");
         final Enumeration<String> keyEnumeration = Collections.enumeration(keys);

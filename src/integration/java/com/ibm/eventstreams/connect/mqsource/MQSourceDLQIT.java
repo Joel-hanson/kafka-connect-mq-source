@@ -563,6 +563,7 @@ public class MQSourceDLQIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
+        // Actual headers
         assertThat(headers.lastWithName("teststring").value()).isEqualTo("myvalue");
         assertThat(headers.lastWithName("volume").value()).isEqualTo("11");
         assertThat(headers.lastWithName("decimalmeaning").value()).isEqualTo("42.0");
@@ -636,6 +637,8 @@ public class MQSourceDLQIT extends AbstractJMSContextIT {
 
         final Headers headers = dlqRecord.headers();
 
+        // Actual headers
+        assertThat(headers.lastWithName("teststring").value()).isEqualTo("myvalue");
         assertThat(headers.lastWithName("volume").value()).isEqualTo("11");
         assertThat(headers.lastWithName("decimalmeaning").value()).isEqualTo("42.0");
 
@@ -824,6 +827,7 @@ public class MQSourceDLQIT extends AbstractJMSContextIT {
         final String dlqValue = new String((byte[]) dlqRecord.value(), StandardCharsets.UTF_8);
         assertThat(dlqValue.endsWith("Invalid JSON message")).isTrue();
 
+        // Actual headers
         assertThat(headers.lastWithName("teststring").value()).isEqualTo("myvalue");
         assertThat(headers.lastWithName("volume").value()).isEqualTo("11");
         assertThat(headers.lastWithName("decimalmeaning").value()).isEqualTo("42.0");
@@ -876,6 +880,7 @@ public class MQSourceDLQIT extends AbstractJMSContextIT {
         final SourceRecord dlqRecord = processedRecords.get(0);
         assertThat(dlqRecord.topic()).isEqualTo("__dlq.mq.source");
 
+        // Actual headers
         final Headers headers = dlqRecord.headers();
         final String dlqValue = new String((byte[]) dlqRecord.value(), StandardCharsets.UTF_8);
         assertThat(dlqValue.endsWith("Invalid JSON message")).isTrue();

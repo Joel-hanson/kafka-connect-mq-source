@@ -1,5 +1,5 @@
 /**
- * Copyright 2022, 2023, 2024, 2025 IBM Corporation
+ * Copyright 2022, 2023, 2024, 2025, 2026 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1357,6 +1357,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
+        // Actual Headers
         // With default preserveHeaderTypes=false, all values are converted to String
         assertThat(headers.lastWithName("teststring").value()).isEqualTo("myvalue");
         assertThat(headers.lastWithName("volume").value()).isEqualTo("11");
@@ -1392,6 +1393,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
+        // Verify JMS properties are copied to Kafka headers
         // With default preserveHeaderTypes=false, all values are converted to String
         assertThat(headers.lastWithName("customHeader").value()).isEqualTo("headerValue");
         assertThat(headers.lastWithName("priority").value()).isEqualTo("5");
@@ -1527,6 +1529,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
+        // Verify all property types are correctly converted to string headers
         // With default preserveHeaderTypes=false, all values are converted to String
         assertThat(headers.lastWithName("stringProp").value()).isEqualTo("text");
         assertThat(headers.lastWithName("intProp").value()).isEqualTo("100");
@@ -1566,6 +1569,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
+        // Verify all property types are correctly converted
         // With default preserveHeaderTypes=false, all values are converted to String
         assertThat(headers.lastWithName("env").value()).isEqualTo("production");
         assertThat(headers.lastWithName("maxRetries").value()).isEqualTo("5");

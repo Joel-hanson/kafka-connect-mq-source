@@ -16,7 +16,6 @@
 package com.ibm.eventstreams.connect.mqsource.builders;
 
 import java.util.Map;
-import java.util.Optional;
 
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -101,11 +100,11 @@ public abstract class BaseRecordBuilder implements RecordBuilder {
      */
     private void configureJmsProperties(final Map<String, String> props) {
         final String str = props.get(MQSourceConnector.CONFIG_NAME_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER);
-        copyJmsPropertiesFlag = Boolean.parseBoolean(Optional.ofNullable(str).orElse("false"));
+        copyJmsPropertiesFlag = Boolean.parseBoolean(str);
         
         // Get the preserve header types configuration
         final String preserveTypesStr = props.get(MQSourceConnector.CONFIG_NAME_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES);
-        final boolean preserveHeaderTypes = Boolean.parseBoolean(Optional.ofNullable(preserveTypesStr).orElse("false"));
+        final boolean preserveHeaderTypes = Boolean.parseBoolean(preserveTypesStr);
         
         jmsToKafkaHeaderConverter = new JmsToKafkaHeaderConverter(preserveHeaderTypes);
     }

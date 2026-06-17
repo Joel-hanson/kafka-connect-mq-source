@@ -436,7 +436,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
     }
     @Test
     public void verifyJmsMessageHeadersWithTypePreservation() throws Exception {
-        // Test that JMS properties preserve their types when mq.jms.properties.preserve.header.types=true
+        // Test that JMS properties preserve their types when mq.jms.properties.preserve.types=true
         connectTask = getSourceTaskWithEmptyKafkaOffset();
 
         final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
@@ -444,7 +444,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put("mq.record.builder",
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
         connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.header.types", "true");
+        connectorConfigProps.put("mq.jms.properties.preserve.types", "true");
 
         connectTask.start(connectorConfigProps);
 
@@ -484,7 +484,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
     @Test
     public void verifyJmsMessageHeadersWithoutTypePreservation() throws Exception {
-        // Test that JMS properties are converted to String when mq.jms.properties.preserve.header.types=false (default)
+        // Test that JMS properties are converted to String when mq.jms.properties.preserve.types=false (default)
         connectTask = getSourceTaskWithEmptyKafkaOffset();
 
         final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
@@ -492,7 +492,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put("mq.record.builder",
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
         connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.header.types", "false");
+        connectorConfigProps.put("mq.jms.properties.preserve.types", "false");
 
         connectTask.start(connectorConfigProps);
 
@@ -532,7 +532,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
     @Test
     public void verifyMqmdByteArrayTypeAlwaysPreserved() throws Exception {
-        // Test that MQMD byte[] properties are always preserved regardless of mq.jms.properties.preserve.header.types setting
+        // Test that MQMD byte[] properties are always preserved regardless of mq.jms.properties.preserve.types setting
         connectTask = getSourceTaskWithEmptyKafkaOffset();
 
         final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
@@ -541,7 +541,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put("mq.record.builder",
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
         connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.header.types", "false");
+        connectorConfigProps.put("mq.jms.properties.preserve.types", "false");
 
         connectTask.start(connectorConfigProps);
 
@@ -556,12 +556,12 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         
         assertEquals("helloworld", kafkaMessage.value());
 
-        // Verify MQMD byte[] properties (MsgId, CorrelId) are preserved even with mq.jms.properties.preserve.header.types=false
+        // Verify MQMD byte[] properties (MsgId, CorrelId) are preserved even with mq.jms.properties.preserve.types=false
         // These are automatically set by MQ
         assertNotNull(kafkaMessage.headers().lastWithName("JMS_IBM_MQMD_MsgId"));
         assertEquals(Schema.Type.BYTES, kafkaMessage.headers().lastWithName("JMS_IBM_MQMD_MsgId").schema().type());
         
-        // Custom integer property is converted to String when mq.jms.properties.preserve.header.types is false
+        // Custom integer property is converted to String when mq.jms.properties.preserve.types is false
         assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("volume").schema().type());
         assertEquals("11", kafkaMessage.headers().lastWithName("volume").value());
 
@@ -570,7 +570,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
     @Test
     public void verifyMqmdPropertiesWithTypePreservation() throws Exception {
-        // Test that MQMD properties preserve their types when mq.message.mqmd.read=true and mq.jms.properties.preserve.header.types=true
+        // Test that MQMD properties preserve their types when mq.message.mqmd.read=true and mq.jms.properties.preserve.types=true
         connectTask = getSourceTaskWithEmptyKafkaOffset();
 
         final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
@@ -579,7 +579,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put("mq.record.builder",
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
         connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.header.types", "true");
+        connectorConfigProps.put("mq.jms.properties.preserve.types", "true");
 
         connectTask.start(connectorConfigProps);
 
@@ -608,7 +608,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
     @Test
     public void verifyMqmdPropertiesWithoutTypePreservation() throws Exception {
-        // Test that MQMD properties are converted to String when mq.jms.properties.preserve.header.types=false
+        // Test that MQMD properties are converted to String when mq.jms.properties.preserve.types=false
         connectTask = getSourceTaskWithEmptyKafkaOffset();
 
         final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
@@ -617,7 +617,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put("mq.record.builder",
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
         connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.header.types", "false");
+        connectorConfigProps.put("mq.jms.properties.preserve.types", "false");
 
         connectTask.start(connectorConfigProps);
 

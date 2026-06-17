@@ -260,23 +260,23 @@ If you write your own RecordBuilder, you can access the MQMD fields of the MQ me
 
 When `mq.jms.properties.copy.to.kafka.headers` is set to `true`, JMS message properties are copied to Kafka headers. By default, all JMS properties are converted to strings for backward compatibility.
 
-To preserve the original data types of JMS properties, set `mq.jms.properties.preserve.header.types` to `true`. When enabled, properties maintain their original types (Integer, Long, Short, Byte, Boolean, Float, Double, String).
+To preserve the original data types of JMS properties, set `mq.jms.properties.preserve.types` to `true`. When enabled, properties maintain their original types (Integer, Long, Short, Byte, Boolean, Float, Double, String).
 
-**Note**: When `mq.message.mqmd.read=true`, MQMD fields become available as JMS properties. Some MQMD properties (MsgId, CorrelId, GroupId, AccountingToken) have byte array values, which are always preserved as byte arrays regardless of the `mq.jms.properties.preserve.header.types` setting, as they cannot be meaningfully converted to strings.
+**Note**: When `mq.message.mqmd.read=true`, MQMD fields become available as JMS properties. Some MQMD properties (MsgId, CorrelId, GroupId, AccountingToken) have byte array values, which are always preserved as byte arrays regardless of the `mq.jms.properties.preserve.types` setting.
 
 #### Configuration Examples
 
 **Default behavior (backward compatible):**
 ```properties
 mq.jms.properties.copy.to.kafka.headers=true
-mq.jms.properties.preserve.header.types=false
+mq.jms.properties.preserve.types=false
 ```
 All JMS properties are converted to strings.
 
 **Type preservation enabled:**
 ```properties
 mq.jms.properties.copy.to.kafka.headers=true
-mq.jms.properties.preserve.header.types=true
+mq.jms.properties.preserve.types=true
 ```
 JMS properties maintain their original data types (Integer, Long, Short, Byte, Boolean, Float, Double, String).
 
@@ -284,7 +284,7 @@ JMS properties maintain their original data types (Integer, Long, Short, Byte, B
 ```properties
 mq.message.mqmd.read=true
 mq.jms.properties.copy.to.kafka.headers=true
-mq.jms.properties.preserve.header.types=true
+mq.jms.properties.preserve.types=true
 ```
 When `mq.message.mqmd.read=true`, MQMD fields (such as `JMS_IBM_MQMD_Priority`, `JMS_IBM_MQMD_MsgId`, `JMS_IBM_MQMD_CorrelId`) become available as JMS properties. With type preservation enabled, these properties maintain their original types. For example, `JMS_IBM_MQMD_Priority` with integer value `5` will be stored as the integer `5` in the Kafka header, not as the string `"5"`. MQMD byte array properties (MsgId, CorrelId, GroupId, AccountingToken) are always preserved as byte arrays.
 
@@ -327,7 +327,7 @@ The configuration options for the Kafka Connect source connector for IBM MQ are 
 | `mq.message.body.jms`                           | Whether to interpret the message body as a JMS message type                                                                                                             | boolean | false          |                                                                                                                                                                                     |
 | `mq.record.builder.key.header`                  | The JMS message header to use as the Kafka record key                                                                                                                   | string  |                | JMSMessageID, JMSCorrelationID, JMSCorrelationIDAsBytes, JMSDestination, JMSXGroupID                                                                                                |
 | `mq.jms.properties.copy.to.kafka.headers`       | Whether to copy JMS message properties to Kafka headers                                                                                                                 | boolean | false          |                                                                                                                                                                                     |
-| `mq.jms.properties.preserve.header.types`       | Whether to preserve JMS property types when copying to Kafka headers. When false (default), properties are converted to strings for backward compatibility. When true, properties maintain their original types (Integer, Long, Short, Byte, Boolean, Float, Double, String). MQMD byte array properties (available when `mq.message.mqmd.read=true`) are always preserved as byte arrays regardless of this setting. Requires `mq.jms.properties.copy.to.kafka.headers=true`. | boolean | false          |                                                                                                                                                                                     |
+| `mq.jms.properties.preserve.types`              | Whether to preserve JMS property types when copying to Kafka headers. When false (default), properties are converted to strings for backward compatibility. When true, properties maintain their original types (Integer, Long, Short, Byte, Boolean, Float, Double, String). MQMD byte array properties (available when `mq.message.mqmd.read=true`) are always preserved as byte arrays regardless of this setting. Requires `mq.jms.properties.copy.to.kafka.headers=true`. | boolean | false          |                                                                                                                                                                                     |
 | `mq.ssl.cipher.suite`                           | The name of the cipher suite for TLS (SSL) connection                                                                                                                   | string  |                | Blank or valid cipher suite                                                                                                                                                         |
 | `mq.ssl.peer.name`                              | The distinguished name pattern of the TLS (SSL) peer                                                                                                                    | string  |                | Blank or DN pattern                                                                                                                                                                 |
 | `mq.ssl.keystore.location`                      | The path to the JKS keystore to use for SSL (TLS) connections                                                                                                           | string  | JVM keystore   | Local path to a JKS file                                                                                                                                                            |

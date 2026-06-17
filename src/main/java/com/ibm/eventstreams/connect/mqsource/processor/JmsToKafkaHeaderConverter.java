@@ -94,27 +94,17 @@ public class JmsToKafkaHeaderConverter {
     private void addHeaderWithType(final ConnectHeaders headers, final String key, final Object value) {
         if (value == null) {
             headers.addString(key, null);
-            return;
-        }
-        
-        // byte[] must always be preserved (only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[])
-        // JMS spec does not allow custom properties to be byte[] - only MQMD properties (when mq.message.mqmd.read=true)
-        // Cannot be converted to String meaningfully
-        if (value instanceof byte[]) {
+        } else if (value instanceof byte[]) {
+            // byte[] must always be preserved (only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[])
+            // JMS spec does not allow custom properties to be byte[] - only MQMD properties (when mq.message.mqmd.read=true)
             headers.add(key, (byte[]) value, Schema.OPTIONAL_BYTES_SCHEMA);
-            return;
-        }
-        
-        // If type preservation is disabled, convert everything else to String (backward compatible)
-        if (!preserveHeaderTypes) {
+        } else if (!preserveHeaderTypes) {
+            // If type preservation is disabled, convert everything else to String (backward compatible)
             log.debug("Converting property '{}' of type '{}' to String ",
                      key, value.getClass().getName());
             headers.addString(key, value.toString());
-            return;
-        }
-        
-        // Type preservation is enabled - preserve original types
-        if (value instanceof Integer) {
+        } else if (value instanceof Integer) {
+            // Type preservation is enabled - preserve original types
             headers.add(key, value, Schema.OPTIONAL_INT32_SCHEMA);
         } else if (value instanceof Long) {
             headers.add(key, value, Schema.OPTIONAL_INT64_SCHEMA);

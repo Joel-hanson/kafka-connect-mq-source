@@ -105,9 +105,9 @@ public class MQSourceConnector extends SourceConnector {
     public static final String CONFIG_DOCUMENTATION_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER = "Whether to copy JMS message properties to Kafka headers.";
     public static final String CONFIG_DISPLAY_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER = "Copy JMS message properties to Kafka headers";
 
-    public static final String CONFIG_NAME_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES = "mq.jms.properties.preserve.header.types";
-    public static final String CONFIG_DOCUMENTATION_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES = "Whether to preserve original data types when copying JMS message properties to Kafka headers. When false (default), all JMS properties are converted to strings for backward compatibility. When true, properties preserve their original types (Integer, Long, Short, Byte, Boolean, Float, Double, String). Note: MQMD byte array properties (MsgId, CorrelId, GroupId, AccountingToken) are always preserved as byte arrays regardless of this setting, as they cannot be meaningfully converted to strings. MQMD properties are only available when mq.message.mqmd.read is set to true.";
-    public static final String CONFIG_DISPLAY_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES = "Preserve JMS property types in headers";
+    public static final String CONFIG_NAME_MQ_JMS_PROPERTIES_PRESERVE_TYPES = "mq.jms.properties.preserve.types";
+    public static final String CONFIG_DOCUMENTATION_MQ_JMS_PROPERTIES_PRESERVE_TYPES = "Whether to preserve original data types when copying JMS message properties to Kafka headers. When false (default), all JMS properties are converted to strings for backward compatibility. When true, properties preserve their original types (Integer, Long, Short, Byte, Boolean, Float, Double, String). Note: MQMD byte array properties (MsgId, CorrelId, GroupId, AccountingToken) are always preserved as byte arrays regardless of this setting. MQMD properties are only available when mq.message.mqmd.read is set to true.";
+    public static final String CONFIG_DISPLAY_MQ_JMS_PROPERTIES_PRESERVE_TYPES = "Preserve JMS property types in headers";
 
     public static final String CONFIG_NAME_MQ_RECORD_BUILDER_KEY_HEADER = "mq.record.builder.key.header";
     public static final String CONFIG_DOCUMENTATION_MQ_RECORD_BUILDER_KEY_HEADER = "The JMS message header to use as the Kafka record key.";
@@ -591,14 +591,14 @@ public class MQSourceConnector extends SourceConnector {
                 CONFIG_GROUP_MQ, 21, Width.MEDIUM,
                 CONFIG_DISPLAY_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER);
 
-        CONFIGDEF.define(CONFIG_NAME_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES,
+        CONFIGDEF.define(CONFIG_NAME_MQ_JMS_PROPERTIES_PRESERVE_TYPES,
                 Type.BOOLEAN,
                 // must be a non-null boolean - assume false if not provided (backward compatible)
                 Boolean.FALSE, new ConfigDef.NonNullValidator(),
                 Importance.LOW,
-                CONFIG_DOCUMENTATION_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES,
+                CONFIG_DOCUMENTATION_MQ_JMS_PROPERTIES_PRESERVE_TYPES,
                 CONFIG_GROUP_MQ, 22, Width.LONG,
-                CONFIG_DISPLAY_MQ_JMS_PROPERTIES_PRESERVE_HEADER_TYPES);
+                CONFIG_DISPLAY_MQ_JMS_PROPERTIES_PRESERVE_TYPES);
 
         CONFIGDEF.define(CONFIG_NAME_MQ_SSL_USE_IBM_CIPHER_MAPPINGS,
                 Type.BOOLEAN,

@@ -15,7 +15,6 @@
  */
 package com.ibm.eventstreams.connect.mqsource.processor;
 
-import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.header.ConnectHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,21 +27,10 @@ import java.util.List;
 
 /**
  * Single responsibility class to copy JMS properties to Kafka headers.
+ * Always preserves the original data types of JMS properties.
  */
 public class JmsToKafkaHeaderConverter {
     private static final Logger log = LoggerFactory.getLogger(JmsToKafkaHeaderConverter.class);
-    
-    /** Configuration flag to control type preservation for JMS properties */
-    private final boolean preserveHeaderTypes;
-
-    /**
-     * Constructor with configuration.
-     *
-     * @param preserveHeaderTypes Whether to preserve types for JMS properties.
-     */
-    public JmsToKafkaHeaderConverter(final boolean preserveHeaderTypes) {
-        this.preserveHeaderTypes = preserveHeaderTypes;
-    }
 
     /**
      * Copies the JMS properties to Kafka headers.
@@ -79,47 +67,44 @@ public class JmsToKafkaHeaderConverter {
     }
 
     /**
-     * Adds a header to ConnectHeaders with type preservation based on configuration.
-     *
-     * Type preservation rules:
-     * - byte[] is ALWAYS preserved as BYTES (only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[]
-     *   when mq.message.mqmd.read=true)
-     * - Other types (Integer, Long, Short, Byte, Boolean, Float, Double, String) are preserved only if preserveHeaderTypes=true
-     * - When preserveHeaderTypes=false (default), all non-byte[] types are converted to String for backward compatibility
+     * Adds a header to ConnectHeaders
+     * - Only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[]
+     *   when mq.message.mqmd.read=true
+     * - JMS supported types are Integer, Long, Short, Byte, Boolean, Float, Double and String
+     * - All non JMS and non-byte[] types are converted to String for backward compatibility
      *
      * @param headers The ConnectHeaders to add to
      * @param key The header key
      * @param value The header value
      */
     private void addHeaderWithType(final ConnectHeaders headers, final String key, final Object value) {
+
         if (value == null) {
             headers.addString(key, null);
-        } else if (value instanceof byte[]) {
-            // byte[] must always be preserved (only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[])
-            // JMS spec does not allow custom properties to be byte[] - only MQMD properties (when mq.message.mqmd.read=true)
-            headers.add(key, (byte[]) value, Schema.OPTIONAL_BYTES_SCHEMA);
-        } else if (!preserveHeaderTypes) {
-            // If type preservation is disabled, convert everything else to String (backward compatible)
-            log.debug("Converting property '{}' of type '{}' to String ",
-                     key, value.getClass().getName());
-            headers.addString(key, value.toString());
+            return;
+        }
+        if (value instanceof String) {
+            headers.addString(key, (String) value);
         } else if (value instanceof Integer) {
-            // Type preservation is enabled - preserve original types
-            headers.add(key, value, Schema.OPTIONAL_INT32_SCHEMA);
+            headers.addInt(key, (Integer) value);
         } else if (value instanceof Long) {
-            headers.add(key, value, Schema.OPTIONAL_INT64_SCHEMA);
+            headers.addLong(key, (Long) value);
         } else if (value instanceof Short) {
-            headers.add(key, value, Schema.OPTIONAL_INT16_SCHEMA);
+            headers.addShort(key, (Short) value);
         } else if (value instanceof Byte) {
-            headers.add(key, value, Schema.OPTIONAL_INT8_SCHEMA);
-        } else if (value instanceof Boolean) {
-            headers.add(key, value, Schema.OPTIONAL_BOOLEAN_SCHEMA);
+            headers.addByte(key, (Byte) value);
         } else if (value instanceof Float) {
-            headers.add(key, value, Schema.OPTIONAL_FLOAT32_SCHEMA);
+            headers.addFloat(key, (Float) value);
         } else if (value instanceof Double) {
-            headers.add(key, value, Schema.OPTIONAL_FLOAT64_SCHEMA);
+            headers.addDouble(key, (Double) value);
+        } else if (value instanceof Boolean) {
+            headers.addBoolean(key, (Boolean) value);
+        } else if (value instanceof byte[]) {
+            // Only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[]
+            // JMS spec does not allow custom properties to be byte[] - only MQMD properties (when mq.message.mqmd.read=true)
+            headers.addBytes(key, (byte[]) value);
         } else {
-            // For String and any other types, convert to String
+            // For any other types, convert to String
             log.debug("Converting property '{}' of type '{}' to String", key, value.getClass().getName());
             headers.addString(key, value.toString());
         }

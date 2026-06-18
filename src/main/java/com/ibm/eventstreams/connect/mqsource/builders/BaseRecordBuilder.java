@@ -102,11 +102,7 @@ public abstract class BaseRecordBuilder implements RecordBuilder {
         final String str = props.get(MQSourceConnector.CONFIG_NAME_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER);
         copyJmsPropertiesFlag = Boolean.parseBoolean(str);
         
-        // Get the preserve types configuration
-        final String preserveTypesStr = props.get(MQSourceConnector.CONFIG_NAME_MQ_JMS_PROPERTIES_PRESERVE_TYPES);
-        final boolean preserveHeaderTypes = Boolean.parseBoolean(preserveTypesStr);
-        
-        jmsToKafkaHeaderConverter = new JmsToKafkaHeaderConverter(preserveHeaderTypes);
+        jmsToKafkaHeaderConverter = new JmsToKafkaHeaderConverter();
     }
 
     /**

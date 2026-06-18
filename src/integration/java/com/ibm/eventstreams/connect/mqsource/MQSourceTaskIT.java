@@ -429,14 +429,14 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         assertEquals("helloworld", kafkaMessage.value());
 
         assertEquals("myvalue", kafkaMessage.headers().lastWithName("teststring").value());
-        assertEquals("11", kafkaMessage.headers().lastWithName("volume").value());
-        assertEquals("42.0", kafkaMessage.headers().lastWithName("decimalmeaning").value());
+        assertEquals(11, kafkaMessage.headers().lastWithName("volume").value());
+        assertEquals(42.0, kafkaMessage.headers().lastWithName("decimalmeaning").value());
 
         connectTask.commitRecord(kafkaMessage, null);
     }
     @Test
     public void verifyJmsMessageHeadersWithTypePreservation() throws Exception {
-        // Test that JMS properties preserve their types when mq.jms.properties.preserve.types=true
+        // Test that JMS properties preserve their types
         connectTask = getSourceTaskWithEmptyKafkaOffset();
 
         final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
@@ -444,7 +444,6 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put("mq.record.builder",
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
         connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.types", "true");
 
         connectTask.start(connectorConfigProps);
 
@@ -483,56 +482,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
     }
 
     @Test
-    public void verifyJmsMessageHeadersWithoutTypePreservation() throws Exception {
-        // Test that JMS properties are converted to String when mq.jms.properties.preserve.types=false (default)
-        connectTask = getSourceTaskWithEmptyKafkaOffset();
-
-        final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
-        connectorConfigProps.put("mq.message.body.jms", "true");
-        connectorConfigProps.put("mq.record.builder",
-                "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
-        connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.types", "false");
-
-        connectTask.start(connectorConfigProps);
-
-        final TextMessage message = getJmsContext().createTextMessage("helloworld");
-        message.setStringProperty("teststring", "myvalue");
-        message.setIntProperty("volume", 11);
-        message.setDoubleProperty("decimalmeaning", 42.0);
-        message.setLongProperty("longvalue", 123456789L);
-        message.setBooleanProperty("flag", true);
-
-        putAllMessagesToQueue(DEFAULT_SOURCE_QUEUE, Arrays.asList(message));
-
-        final List<SourceRecord> kafkaMessages = connectTask.poll();
-        assertEquals(1, kafkaMessages.size());
-        final SourceRecord kafkaMessage = kafkaMessages.get(0);
-        
-        assertEquals("helloworld", kafkaMessage.value());
-
-        // Verify all types are converted to String (backward compatible behavior)
-        assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("teststring").schema().type());
-        assertEquals("myvalue", kafkaMessage.headers().lastWithName("teststring").value());
-        
-        assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("volume").schema().type());
-        assertEquals("11", kafkaMessage.headers().lastWithName("volume").value());
-        
-        assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("decimalmeaning").schema().type());
-        assertEquals("42.0", kafkaMessage.headers().lastWithName("decimalmeaning").value());
-        
-        assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("longvalue").schema().type());
-        assertEquals("123456789", kafkaMessage.headers().lastWithName("longvalue").value());
-        
-        assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("flag").schema().type());
-        assertEquals("true", kafkaMessage.headers().lastWithName("flag").value());
-
-        connectTask.commitRecord(kafkaMessage, null);
-    }
-
-    @Test
-    public void verifyMqmdByteArrayTypeAlwaysPreserved() throws Exception {
-        // Test that MQMD byte[] properties are always preserved regardless of mq.jms.properties.preserve.types setting
+    public void verifyMqmdByteArrayTypePreserved() throws Exception {
         connectTask = getSourceTaskWithEmptyKafkaOffset();
 
         final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
@@ -541,7 +491,6 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put("mq.record.builder",
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
         connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.types", "false");
 
         connectTask.start(connectorConfigProps);
 
@@ -556,21 +505,21 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         
         assertEquals("helloworld", kafkaMessage.value());
 
-        // Verify MQMD byte[] properties (MsgId, CorrelId) are preserved even with mq.jms.properties.preserve.types=false
+        // Verify MQMD byte[] properties (MsgId, CorrelId) are preserved
         // These are automatically set by MQ
         assertNotNull(kafkaMessage.headers().lastWithName("JMS_IBM_MQMD_MsgId"));
         assertEquals(Schema.Type.BYTES, kafkaMessage.headers().lastWithName("JMS_IBM_MQMD_MsgId").schema().type());
         
-        // Custom integer property is converted to String when mq.jms.properties.preserve.types is false
-        assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("volume").schema().type());
-        assertEquals("11", kafkaMessage.headers().lastWithName("volume").value());
+        // Custom integer property preserves its type
+        assertEquals(Schema.Type.INT32, kafkaMessage.headers().lastWithName("volume").schema().type());
+        assertEquals(11, kafkaMessage.headers().lastWithName("volume").value());
 
         connectTask.commitRecord(kafkaMessage, null);
     }
 
     @Test
     public void verifyMqmdPropertiesWithTypePreservation() throws Exception {
-        // Test that MQMD properties preserve their types when mq.message.mqmd.read=true and mq.jms.properties.preserve.types=true
+        // Test that MQMD properties preserve their types when mq.message.mqmd.read=true
         connectTask = getSourceTaskWithEmptyKafkaOffset();
 
         final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
@@ -579,7 +528,6 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put("mq.record.builder",
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
         connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.types", "true");
 
         connectTask.start(connectorConfigProps);
 
@@ -602,43 +550,6 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         // Custom property should also preserve type
         assertEquals(Schema.Type.INT32, kafkaMessage.headers().lastWithName("customIntProp").schema().type());
         assertEquals(999, kafkaMessage.headers().lastWithName("customIntProp").value());
-
-        connectTask.commitRecord(kafkaMessage, null);
-    }
-
-    @Test
-    public void verifyMqmdPropertiesWithoutTypePreservation() throws Exception {
-        // Test that MQMD properties are converted to String when mq.jms.properties.preserve.types=false
-        connectTask = getSourceTaskWithEmptyKafkaOffset();
-
-        final Map<String, String> connectorConfigProps = createDefaultConnectorProperties();
-        connectorConfigProps.put("mq.message.body.jms", "true");
-        connectorConfigProps.put("mq.message.mqmd.read", "true");
-        connectorConfigProps.put("mq.record.builder",
-                "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
-        connectorConfigProps.put("mq.jms.properties.copy.to.kafka.headers", "true");
-        connectorConfigProps.put("mq.jms.properties.preserve.types", "false");
-
-        connectTask.start(connectorConfigProps);
-
-        final TextMessage message = getJmsContext().createTextMessage("helloworld");
-        message.setIntProperty("customIntProp", 999);
-
-        putAllMessagesToQueue(DEFAULT_SOURCE_QUEUE, Arrays.asList(message));
-
-        final List<SourceRecord> kafkaMessages = connectTask.poll();
-        assertEquals(1, kafkaMessages.size());
-        final SourceRecord kafkaMessage = kafkaMessages.get(0);
-        
-        assertEquals("helloworld", kafkaMessage.value());
-
-        // Verify MQMD properties are present but converted to String
-        assertNotNull(kafkaMessage.headers().lastWithName("JMS_IBM_MQMD_Format"));
-        assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("JMS_IBM_MQMD_Format").schema().type());
-        
-        // Custom property should also be converted to String
-        assertEquals(Schema.Type.STRING, kafkaMessage.headers().lastWithName("customIntProp").schema().type());
-        assertEquals("999", kafkaMessage.headers().lastWithName("customIntProp").value());
 
         connectTask.commitRecord(kafkaMessage, null);
     }
@@ -1357,11 +1268,10 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Actual Headers
-        // With default preserveHeaderTypes=false, all values are converted to String
+        // Actual Headers - types are always preserved
         assertThat(headers.lastWithName("teststring").value()).isEqualTo("myvalue");
-        assertThat(headers.lastWithName("volume").value()).isEqualTo("11");
-        assertThat(headers.lastWithName("decimalmeaning").value()).isEqualTo("42.0");
+        assertThat(headers.lastWithName("volume").value()).isEqualTo(11);
+        assertThat(headers.lastWithName("decimalmeaning").value()).isEqualTo(42.0);
     }
 
     @Test
@@ -1393,12 +1303,11 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Verify JMS properties are copied to Kafka headers
-        // With default preserveHeaderTypes=false, all values are converted to String
+        // Verify JMS properties are copied to Kafka headers with type preservation
         assertThat(headers.lastWithName("customHeader").value()).isEqualTo("headerValue");
-        assertThat(headers.lastWithName("priority").value()).isEqualTo("5");
-        assertThat(headers.lastWithName("price").value()).isEqualTo("99.99");
-        assertThat(headers.lastWithName("isActive").value()).isEqualTo("true");
+        assertThat(headers.lastWithName("priority").value()).isEqualTo(5);
+        assertThat(headers.lastWithName("price").value()).isEqualTo(99.99);
+        assertThat(headers.lastWithName("isActive").value()).isEqualTo(true);
     }
 
     @Test
@@ -1462,11 +1371,10 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Verify JMS properties are copied to Kafka headers
-        // With default config (preserveHeaderTypes=false), all JMS properties are Strings
+        // Verify JMS properties are copied to Kafka headers with type preservation
         assertThat(headers.lastWithName("correlationId").value()).isEqualTo("corr-123");
-        assertThat(headers.lastWithName("retryCount").value()).isEqualTo("3");
-        assertThat(headers.lastWithName("amount").value()).isEqualTo("150.75");
+        assertThat(headers.lastWithName("retryCount").value()).isEqualTo(3);
+        assertThat(headers.lastWithName("amount").value()).isEqualTo(150.75);
     }
 
     @Test
@@ -1529,16 +1437,15 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Verify all property types are correctly converted to string headers
-        // With default preserveHeaderTypes=false, all values are converted to String
+        // Verify all property types are correctly preserved
         assertThat(headers.lastWithName("stringProp").value()).isEqualTo("text");
-        assertThat(headers.lastWithName("intProp").value()).isEqualTo("100");
-        assertThat(headers.lastWithName("longProp").value()).isEqualTo("999999999");
-        assertThat(headers.lastWithName("floatProp").value()).isEqualTo("3.14");
-        assertThat(headers.lastWithName("doubleProp").value()).isEqualTo("2.71828");
-        assertThat(headers.lastWithName("boolProp").value()).isEqualTo("false");
-        assertThat(headers.lastWithName("byteProp").value()).isEqualTo("127");
-        assertThat(headers.lastWithName("shortProp").value()).isEqualTo("32000");
+        assertThat(headers.lastWithName("intProp").value()).isEqualTo(100);
+        assertThat(headers.lastWithName("longProp").value()).isEqualTo(999999999L);
+        assertThat(headers.lastWithName("floatProp").value()).isEqualTo(3.14f);
+        assertThat(headers.lastWithName("doubleProp").value()).isEqualTo(2.71828);
+        assertThat(headers.lastWithName("boolProp").value()).isEqualTo(false);
+        assertThat(headers.lastWithName("byteProp").value()).isEqualTo((byte) 127);
+        assertThat(headers.lastWithName("shortProp").value()).isEqualTo((short) 32000);
     }
 
     @Test
@@ -1569,12 +1476,11 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Verify all property types are correctly converted
-        // With default preserveHeaderTypes=false, all values are converted to String
+        // Verify all property types are correctly preserved
         assertThat(headers.lastWithName("env").value()).isEqualTo("production");
-        assertThat(headers.lastWithName("maxRetries").value()).isEqualTo("5");
-        assertThat(headers.lastWithName("createdAt").value()).isEqualTo("1609459200000");
-        assertThat(headers.lastWithName("threshold").value()).isEqualTo("0.95");
-        assertThat(headers.lastWithName("enabled").value()).isEqualTo("true");
+        assertThat(headers.lastWithName("maxRetries").value()).isEqualTo(5);
+        assertThat(headers.lastWithName("createdAt").value()).isEqualTo(1609459200000L);
+        assertThat(headers.lastWithName("threshold").value()).isEqualTo(0.95);
+        assertThat(headers.lastWithName("enabled").value()).isEqualTo(true);
     }
 }

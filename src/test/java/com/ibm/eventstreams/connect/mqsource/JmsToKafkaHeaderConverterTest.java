@@ -83,31 +83,32 @@ public class JmsToKafkaHeaderConverterTest {
         assertEquals(2, actualConnectHeaders.size());
         
         Header priorityHeader = actualConnectHeaders.lastWithName("JMS_IBM_MQMD_Priority");
-        assertEquals(Schema.Type.INT32, priorityHeader.schema().type());
-        assertEquals(5, priorityHeader.value());
+        assertEquals(Schema.Type.STRING, priorityHeader.schema().type());
+        assertEquals("5", priorityHeader.value());
 
         Header customIntHeader = actualConnectHeaders.lastWithName("customIntProp");
-        assertEquals(Schema.Type.INT32, customIntHeader.schema().type());
-        assertEquals(12345, customIntHeader.value());
+        assertEquals(Schema.Type.STRING, customIntHeader.schema().type());
+        assertEquals("12345", customIntHeader.value());
     }
 
     @Test
     public void convertMqmdByteArrayPropertiesToKafkaHeaders_AlwaysPreserved() throws JMSException {
         // Test that MQMD byte array properties are always preserved
         // Note: JMS spec does not allow custom byte[] properties - only MQMD properties can be byte[]
+        // This tests properties that come through getObjectProperty() as byte arrays
         
         final JmsToKafkaHeaderConverter converter = new JmsToKafkaHeaderConverter();
         
-        final List<String> keys = Arrays.asList("JMS_IBM_MQMD_MsgId", "JMS_IBM_MQMD_CorrelId");
+        final List<String> keys = Arrays.asList("JMS_IBM_MQMD_GroupId", "JMS_IBM_MQMD_AccountingToken");
         final Enumeration<String> keyEnumeration = Collections.enumeration(keys);
         
-        final byte[] msgId = new byte[]{0x01, 0x02, 0x03, 0x04};
-        final byte[] correlId = new byte[]{0x05, 0x06, 0x07, 0x08};
+        final byte[] groupId = new byte[]{0x01, 0x02, 0x03, 0x04};
+        final byte[] accountingToken = new byte[]{0x05, 0x06, 0x07, 0x08};
 
         // Arrange
         when(message.getPropertyNames()).thenReturn(keyEnumeration);
-        when(message.getObjectProperty("JMS_IBM_MQMD_MsgId")).thenReturn(msgId);
-        when(message.getObjectProperty("JMS_IBM_MQMD_CorrelId")).thenReturn(correlId);
+        when(message.getObjectProperty("JMS_IBM_MQMD_GroupId")).thenReturn(groupId);
+        when(message.getObjectProperty("JMS_IBM_MQMD_AccountingToken")).thenReturn(accountingToken);
 
         // Act
         final ConnectHeaders actualConnectHeaders = converter.convertJmsPropertiesToKafkaHeaders(message);
@@ -115,13 +116,13 @@ public class JmsToKafkaHeaderConverterTest {
         // Verify - MQMD byte arrays are always preserved
         assertEquals(2, actualConnectHeaders.size());
         
-        Header msgIdHeader = actualConnectHeaders.lastWithName("JMS_IBM_MQMD_MsgId");
-        assertEquals(Schema.Type.BYTES, msgIdHeader.schema().type());
-        assertArrayEquals(msgId, (byte[]) msgIdHeader.value());
+        Header groupIdHeader = actualConnectHeaders.lastWithName("JMS_IBM_MQMD_GroupId");
+        assertEquals(Schema.Type.BYTES, groupIdHeader.schema().type());
+        assertArrayEquals(groupId, (byte[]) groupIdHeader.value());
 
-        Header correlIdHeader = actualConnectHeaders.lastWithName("JMS_IBM_MQMD_CorrelId");
-        assertEquals(Schema.Type.BYTES, correlIdHeader.schema().type());
-        assertArrayEquals(correlId, (byte[]) correlIdHeader.value());
+        Header accountingTokenHeader = actualConnectHeaders.lastWithName("JMS_IBM_MQMD_AccountingToken");
+        assertEquals(Schema.Type.BYTES, accountingTokenHeader.schema().type());
+        assertArrayEquals(accountingToken, (byte[]) accountingTokenHeader.value());
     }
 
     @Test
@@ -153,8 +154,8 @@ public class JmsToKafkaHeaderConverterTest {
     }
 
     @Test
-    public void convertNumericAndPrimitiveJmsPropertiesToKafkaHeaders_WithTypePreservation() throws JMSException {
-        // Test that all numeric and primitive JMS types are preserved
+    public void convertNumericAndPrimitiveJmsPropertiesToKafkaHeaders() throws JMSException {
+        // Test that all numeric and primitive JMS types are converted to String
         final JmsToKafkaHeaderConverter converter = new JmsToKafkaHeaderConverter();
         
         final List<String> keys = Arrays.asList("longProp", "shortProp", "byteProp",
@@ -173,32 +174,32 @@ public class JmsToKafkaHeaderConverterTest {
         // Act
         final ConnectHeaders actualConnectHeaders = converter.convertJmsPropertiesToKafkaHeaders(message);
 
-        // Verify
+        // Verify - all converted to String
         assertEquals(6, actualConnectHeaders.size());
         
         Header longHeader = actualConnectHeaders.lastWithName("longProp");
-        assertEquals(Schema.Type.INT64, longHeader.schema().type());
-        assertEquals(123456789L, longHeader.value());
+        assertEquals(Schema.Type.STRING, longHeader.schema().type());
+        assertEquals("123456789", longHeader.value());
 
         Header shortHeader = actualConnectHeaders.lastWithName("shortProp");
-        assertEquals(Schema.Type.INT16, shortHeader.schema().type());
-        assertEquals((short) 100, shortHeader.value());
+        assertEquals(Schema.Type.STRING, shortHeader.schema().type());
+        assertEquals("100", shortHeader.value());
 
         Header byteHeader = actualConnectHeaders.lastWithName("byteProp");
-        assertEquals(Schema.Type.INT8, byteHeader.schema().type());
-        assertEquals((byte) 42, byteHeader.value());
+        assertEquals(Schema.Type.STRING, byteHeader.schema().type());
+        assertEquals("42", byteHeader.value());
 
         Header booleanHeader = actualConnectHeaders.lastWithName("booleanProp");
-        assertEquals(Schema.Type.BOOLEAN, booleanHeader.schema().type());
-        assertEquals(true, booleanHeader.value());
+        assertEquals(Schema.Type.STRING, booleanHeader.schema().type());
+        assertEquals("true", booleanHeader.value());
 
         Header floatHeader = actualConnectHeaders.lastWithName("floatProp");
-        assertEquals(Schema.Type.FLOAT32, floatHeader.schema().type());
-        assertEquals(3.14f, floatHeader.value());
+        assertEquals(Schema.Type.STRING, floatHeader.schema().type());
+        assertEquals("3.14", floatHeader.value());
 
         Header doubleHeader = actualConnectHeaders.lastWithName("doubleProp");
-        assertEquals(Schema.Type.FLOAT64, doubleHeader.schema().type());
-        assertEquals(2.718281828, doubleHeader.value());
+        assertEquals(Schema.Type.STRING, doubleHeader.schema().type());
+        assertEquals("2.718281828", doubleHeader.value());
     }
 
     @Test

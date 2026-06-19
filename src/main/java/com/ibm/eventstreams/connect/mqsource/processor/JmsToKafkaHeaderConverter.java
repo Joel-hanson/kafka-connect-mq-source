@@ -19,19 +19,21 @@ import org.apache.kafka.connect.header.ConnectHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.msg.client.jms.JmsConstants;
+
 import javax.jms.JMSException;
 import javax.jms.Message;
+
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
 /**
  * Single responsibility class to copy JMS properties to Kafka headers.
- * Always preserves the original data types of JMS properties.
+ * Converts all JMS properties to String except byte[]
  */
 public class JmsToKafkaHeaderConverter {
     private static final Logger log = LoggerFactory.getLogger(JmsToKafkaHeaderConverter.class);
-
     /**
      * Copies the JMS properties to Kafka headers.
      *
@@ -49,7 +51,21 @@ public class JmsToKafkaHeaderConverter {
 
             jmsPropertyKeys.forEach(key -> {
                 try {
-                    final Object prop = message.getObjectProperty(key);
+                    final Object prop;
+            
+                    if (key.equals(JmsConstants.JMS_IBM_MQMD_MSGID)) {
+                        prop = message.getJMSMessageID();
+                    } else if (key.equals(JmsConstants.JMS_IBM_MQMD_CORRELID)) {
+                        prop = message.getJMSCorrelationID();
+                    } else if (key.equals(JmsConstants.JMS_DELIVERY_MODE)) {
+                        prop = message.getJMSDeliveryMode();
+                    } else if (key.equals(JmsConstants.JMS_EXPIRATION)) {
+                        prop = message.getJMSExpiration();
+                    } else {
+                        prop = message.getObjectProperty(key);
+                    }
+
+                    log.info("Adding JMS property {} with value {}", key, prop);
                     addHeaderWithType(connectHeaders, key, prop);
                 } catch (final JMSException e) {
                     // Not failing the message processing if JMS properties cannot be read for some
@@ -70,8 +86,7 @@ public class JmsToKafkaHeaderConverter {
      * Adds a header to ConnectHeaders
      * - Only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[]
      *   when mq.message.mqmd.read=true
-     * - JMS supported types are Integer, Long, Short, Byte, Boolean, Float, Double and String
-     * - All non JMS and non-byte[] types are converted to String for backward compatibility
+     * - For any other types, convert to String
      *
      * @param headers The ConnectHeaders to add to
      * @param key The header key
@@ -83,29 +98,14 @@ public class JmsToKafkaHeaderConverter {
             headers.addString(key, null);
             return;
         }
-        if (value instanceof String) {
-            headers.addString(key, (String) value);
-        } else if (value instanceof Integer) {
-            headers.addInt(key, (Integer) value);
-        } else if (value instanceof Long) {
-            headers.addLong(key, (Long) value);
-        } else if (value instanceof Short) {
-            headers.addShort(key, (Short) value);
-        } else if (value instanceof Byte) {
-            headers.addByte(key, (Byte) value);
-        } else if (value instanceof Float) {
-            headers.addFloat(key, (Float) value);
-        } else if (value instanceof Double) {
-            headers.addDouble(key, (Double) value);
-        } else if (value instanceof Boolean) {
-            headers.addBoolean(key, (Boolean) value);
-        } else if (value instanceof byte[]) {
+        if (value instanceof byte[]) {
             // Only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[]
             // JMS spec does not allow custom properties to be byte[] - only MQMD properties (when mq.message.mqmd.read=true)
+            log.info("Converting property '{}' from byte[]: {}", key, (byte[]) value);
             headers.addBytes(key, (byte[]) value);
         } else {
             // For any other types, convert to String
-            log.debug("Converting property '{}' of type '{}' to String", key, value.getClass().getName());
+            log.info("Converting property '{}' of type '{}' to String", key, value.getClass().getName());
             headers.addString(key, value.toString());
         }
     }

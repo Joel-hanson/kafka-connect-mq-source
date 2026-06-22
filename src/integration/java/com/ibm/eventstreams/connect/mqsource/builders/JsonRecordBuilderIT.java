@@ -199,7 +199,7 @@ public class JsonRecordBuilderIT extends AbstractJMSContextIT {
             assertEquals("test", value.get("name"));
             assertEquals(true, value.get("active"));
 
-            // Verify JMS properties are copied to Kafka headers with type preservation
+            // Verify JMS properties are copied to Kafka headers
             Headers headers = sourceRecord.headers();
             assertThat(headers.lastWithName("source").value()).isEqualTo("system-a");
             assertThat(headers.lastWithName("retryCount").value()).isEqualTo("3");

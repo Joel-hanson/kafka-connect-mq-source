@@ -64,7 +64,7 @@ public class JmsToKafkaHeaderConverterTest {
     }
 
     @Test
-    public void convertIntegerJmsPropertiesToKafkaHeaders_WithTypePreservation() throws JMSException {
+    public void convertIntegerJmsPropertiesToKafkaHeaders() throws JMSException {
         // Test that Integer JMS properties remain as integers
         final JmsToKafkaHeaderConverter converter = new JmsToKafkaHeaderConverter();
         
@@ -92,7 +92,7 @@ public class JmsToKafkaHeaderConverterTest {
     }
 
     @Test
-    public void convertMqmdByteArrayPropertiesToKafkaHeaders_AlwaysPreserved() throws JMSException {
+    public void convertMqmdByteArrayPropertiesToKafkaHeaders throws JMSException {
         // Test that MQMD byte array properties are always preserved
         // Note: JMS spec does not allow custom byte[] properties - only MQMD properties can be byte[]
         // This tests properties that come through getObjectProperty() as byte arrays
@@ -113,7 +113,7 @@ public class JmsToKafkaHeaderConverterTest {
         // Act
         final ConnectHeaders actualConnectHeaders = converter.convertJmsPropertiesToKafkaHeaders(message);
 
-        // Verify - MQMD byte arrays are always preserved
+        // Verify
         assertEquals(2, actualConnectHeaders.size());
         
         Header groupIdHeader = actualConnectHeaders.lastWithName("JMS_IBM_MQMD_GroupId");

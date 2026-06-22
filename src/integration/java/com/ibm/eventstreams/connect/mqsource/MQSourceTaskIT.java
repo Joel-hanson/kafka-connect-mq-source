@@ -1248,7 +1248,6 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put(MQSourceConnector.CONFIG_NAME_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER, "true");
         connectorConfigProps.put(MQSourceConnector.CONFIG_NAME_MQ_RECORD_BUILDER,
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
-        // Default: preserveHeaderTypes=false, so values are converted to String
 
         connectTask.start(connectorConfigProps);
 
@@ -1269,7 +1268,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Actual Headers - types are always preserved
+        // Actual Headers
         assertThat(headers.lastWithName("teststring").value()).isEqualTo("myvalue");
         assertThat(headers.lastWithName("volume").value()).isEqualTo("11");
         assertThat(headers.lastWithName("decimalmeaning").value()).isEqualTo("42.0");
@@ -1285,7 +1284,6 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put(MQSourceConnector.CONFIG_NAME_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER, "true");
         connectorConfigProps.put(MQSourceConnector.CONFIG_NAME_MQ_RECORD_BUILDER,
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
-        // Default: preserveHeaderTypes=false, so values are converted to String
 
         connectTask.start(connectorConfigProps);
 
@@ -1304,7 +1302,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Verify JMS properties are copied to Kafka headers with type preservation
+        // Verify JMS properties are copied to Kafka headers
         assertThat(headers.lastWithName("customHeader").value()).isEqualTo("headerValue");
         assertThat(headers.lastWithName("priority").value()).isEqualTo("5");
         assertThat(headers.lastWithName("price").value()).isEqualTo("99.99");
@@ -1372,7 +1370,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Verify JMS properties are copied to Kafka headers with type preservation
+        // Verify JMS properties are copied to Kafka headers
         assertThat(headers.lastWithName("correlationId").value()).isEqualTo("corr-123");
         assertThat(headers.lastWithName("retryCount").value()).isEqualTo("3");
         assertThat(headers.lastWithName("amount").value()).isEqualTo("150.75");
@@ -1417,7 +1415,6 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
         connectorConfigProps.put(MQSourceConnector.CONFIG_NAME_MQ_JMS_PROPERTY_COPY_TO_KAFKA_HEADER, "true");
         connectorConfigProps.put(MQSourceConnector.CONFIG_NAME_MQ_RECORD_BUILDER,
                 "com.ibm.eventstreams.connect.mqsource.builders.DefaultRecordBuilder");
-        // Default: preserveHeaderTypes=false, so values are converted to String
 
         connectTask.start(connectorConfigProps);
 
@@ -1438,14 +1435,14 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Verify all property types are correctly preserved
+        // Verify all property types are correctly converted to string headers
         assertThat(headers.lastWithName("stringProp").value()).isEqualTo("text");
         assertThat(headers.lastWithName("intProp").value()).isEqualTo("100");
         assertThat(headers.lastWithName("longProp").value()).isEqualTo("999999999");
         assertThat(headers.lastWithName("floatProp").value()).isEqualTo("3.14");
         assertThat(headers.lastWithName("doubleProp").value()).isEqualTo("2.71828");
         assertThat(headers.lastWithName("boolProp").value()).isEqualTo("false");
-        assertThat(headers.lastWithName("byteProp").value()).isEqualTo( "127");
+        assertThat(headers.lastWithName("byteProp").value()).isEqualTo("127");
         assertThat(headers.lastWithName("shortProp").value()).isEqualTo("32000");
     }
 
@@ -1477,7 +1474,7 @@ public class MQSourceTaskIT extends AbstractJMSContextIT {
 
         final Headers headers = processedRecords.get(0).headers();
 
-        // Verify all property types are correctly preserved
+        // Verify all property types are correctly converted
         assertThat(headers.lastWithName("env").value()).isEqualTo("production");
         assertThat(headers.lastWithName("maxRetries").value()).isEqualTo("5");
         assertThat(headers.lastWithName("createdAt").value()).isEqualTo("1609459200000");

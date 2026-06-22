@@ -207,7 +207,7 @@ public class DefaultRecordBuilderIT extends AbstractJMSContextIT {
             String value = (String) sourceRecord.value();
             assertThat(value).isNotNull();
 
-            // Verify JMS properties are copied to Kafka headers with type preservation
+            // Verify JMS properties are copied to Kafka headers
             Headers headers = sourceRecord.headers();
             assertThat(headers.lastWithName("customHeader").value()).isEqualTo("headerValue");
             assertThat(headers.lastWithName("priority").value()).isEqualTo("5");
@@ -255,7 +255,7 @@ public class DefaultRecordBuilderIT extends AbstractJMSContextIT {
             byte[] value = (byte[]) sourceRecord.value();
             assertArrayEquals(testData, value);
 
-            // Verify JMS properties are copied to Kafka headers with type preservation
+            // Verify JMS properties are copied to Kafka headers
             Headers headers = sourceRecord.headers();
             assertThat(headers.lastWithName("messageType").value()).isEqualTo("binary");
             assertThat(headers.lastWithName("version").value()).isEqualTo("2");
@@ -302,7 +302,7 @@ public class DefaultRecordBuilderIT extends AbstractJMSContextIT {
             String value = (String) sourceRecord.value();
             assertEquals(testText, value);
 
-            // Verify JMS properties are copied to Kafka headers with type preservation
+            // Verify JMS properties are copied to Kafka headers
             Headers headers = sourceRecord.headers();
             assertThat(headers.lastWithName("source").value()).isEqualTo("system-a");
             assertThat(headers.lastWithName("retryCount").value()).isEqualTo("3");

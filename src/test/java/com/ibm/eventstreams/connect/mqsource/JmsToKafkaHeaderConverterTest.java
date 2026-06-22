@@ -92,7 +92,7 @@ public class JmsToKafkaHeaderConverterTest {
     }
 
     @Test
-    public void convertMqmdByteArrayPropertiesToKafkaHeaders throws JMSException {
+    public void convertMqmdByteArrayPropertiesToKafkaHeaders() throws JMSException {
         // Test that MQMD byte array properties are always preserved
         // Note: JMS spec does not allow custom byte[] properties - only MQMD properties can be byte[]
         // This tests properties that come through getObjectProperty() as byte arrays

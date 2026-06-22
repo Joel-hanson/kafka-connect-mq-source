@@ -70,7 +70,7 @@ public class JmsToKafkaHeaderConverter {
                 } catch (final JMSException e) {
                     // Not failing the message processing if JMS properties cannot be read for some
                     // reason.
-                    log.warn("JMS exception {}", e);
+                    log.warn("Could not copy property {} from the JMS message due to exception {}", key, e);
                 }
             });
         } catch (final JMSException e) {

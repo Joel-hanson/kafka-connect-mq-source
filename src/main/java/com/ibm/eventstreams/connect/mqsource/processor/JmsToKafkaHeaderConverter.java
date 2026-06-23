@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, 2024 IBM Corporation
+ * Copyright 2019, 2024, 2026 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class JmsToKafkaHeaderConverter {
                         prop = message.getObjectProperty(key);
                     }
 
-                    log.info("Adding JMS property {} with value {}", key, prop);
+                    log.debug("Adding JMS property {} with value {}", key, prop);
                     addHeaderWithType(connectHeaders, key, prop);
                 } catch (final JMSException e) {
                     // Not failing the message processing if JMS properties cannot be read for some

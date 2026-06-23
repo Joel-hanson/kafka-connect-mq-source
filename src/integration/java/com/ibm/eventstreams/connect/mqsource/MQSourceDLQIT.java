@@ -1,5 +1,5 @@
 /**
- * Copyright 2022, 2023, 2024, 2025 IBM Corporation
+ * Copyright 2022, 2023, 2024, 2025, 2026 IBM Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -880,11 +880,11 @@ public class MQSourceDLQIT extends AbstractJMSContextIT {
         final SourceRecord dlqRecord = processedRecords.get(0);
         assertThat(dlqRecord.topic()).isEqualTo("__dlq.mq.source");
 
-        // Actual headers
         final Headers headers = dlqRecord.headers();
         final String dlqValue = new String((byte[]) dlqRecord.value(), StandardCharsets.UTF_8);
         assertThat(dlqValue.endsWith("Invalid JSON message")).isTrue();
 
+        // Actual headers
         assertThat(headers.lastWithName("teststring").value()).isEqualTo("myvalue");
         assertThat(headers.lastWithName("volume").value()).isEqualTo("11");
         assertThat(headers.lastWithName("decimalmeaning").value()).isEqualTo("42.0");

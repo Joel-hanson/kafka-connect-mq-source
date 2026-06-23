@@ -57,10 +57,6 @@ public class JmsToKafkaHeaderConverter {
                         prop = message.getJMSMessageID();
                     } else if (key.equals(JmsConstants.JMS_IBM_MQMD_CORRELID)) {
                         prop = message.getJMSCorrelationID();
-                    } else if (key.equals(JmsConstants.JMS_DELIVERY_MODE)) {
-                        prop = message.getJMSDeliveryMode();
-                    } else if (key.equals(JmsConstants.JMS_EXPIRATION)) {
-                        prop = message.getJMSExpiration();
                     } else {
                         prop = message.getObjectProperty(key);
                     }
@@ -84,7 +80,7 @@ public class JmsToKafkaHeaderConverter {
 
     /**
      * Adds a header to ConnectHeaders
-     * - Only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[]
+     * - Only MQMD properties like GroupId/AccountingToken can be byte[]
      *   when mq.message.mqmd.read=true
      * - For any other types, convert to String
      *
@@ -98,14 +94,15 @@ public class JmsToKafkaHeaderConverter {
             headers.addString(key, null);
             return;
         }
+
         if (value instanceof byte[]) {
-            // Only MQMD properties like MsgId/CorrelId/GroupId/AccountingToken can be byte[]
+            // Only MQMD properties like GroupId/AccountingToken can be byte[]
             // JMS spec does not allow custom properties to be byte[] - only MQMD properties (when mq.message.mqmd.read=true)
-            log.info("Converting property '{}' from byte[]: {}", key, (byte[]) value);
+            log.debug("Converting property '{}' from byte[]: {}", key, (byte[]) value);
             headers.addBytes(key, (byte[]) value);
         } else {
             // For any other types, convert to String
-            log.info("Converting property '{}' of type '{}' to String", key, value.getClass().getName());
+            log.debug("Converting property '{}' of type '{}' to String", key, value.getClass().getName());
             headers.addString(key, value.toString());
         }
     }
